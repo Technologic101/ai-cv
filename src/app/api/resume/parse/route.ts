@@ -35,6 +35,11 @@ export async function POST(request: NextRequest) {
       Extract key information like name, contact details, work experience, education, and skills.
       Format the response as a valid JSON object following the JSON Resume schema.
       
+      IMPORTANT: All dates must be in ISO 8601 format:
+      - Full date: YYYY-MM-DD (e.g., 2023-04-15)
+      - Month and year: YYYY-MM (e.g., 2023-04)
+      - Year only: YYYY (e.g., 2023)
+      
       Resume text:
       {text}
       
@@ -49,8 +54,8 @@ export async function POST(request: NextRequest) {
       - work: Array of work experiences, each with:
         - name: Company name
         - position: Job title
-        - startDate: Start date
-        - endDate: End date or "Present"
+        - startDate: Start date (in ISO 8601 format)
+        - endDate: End date (in ISO 8601 format) or "Present"
         - summary: Job description
         - highlights: Array of key achievements
       
@@ -58,8 +63,8 @@ export async function POST(request: NextRequest) {
         - institution: School/University name
         - area: Field of study
         - studyType: Degree type
-        - startDate: Start date
-        - endDate: End date or "Present"
+        - startDate: Start date (in ISO 8601 format)
+        - endDate: End date (in ISO 8601 format) or "Present"
         - score: GPA or grade (if available)
         - courses: Array of relevant courses
       
