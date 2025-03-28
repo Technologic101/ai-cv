@@ -1,26 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
-import { ChatOpenAI } from 'langchain/chat_models/openai';
-import { PromptTemplate } from 'langchain/prompts';
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { ChatOpenAI } from "@langchain/openai";
+import { PromptTemplate } from '@langchain/core/prompts';
+import resumeSchema from '@jsonresume/schema';
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
+    const file = formData.get('file');
 
-    if (!file) {
+    if (!file || !(file instanceof Blob)) {
       return NextResponse.json(
         { error: 'No file provided' },
         { status: 400 }
       );
     }
 
-    // Convert File to ArrayBuffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // Load PDF using LangChain
-    const loader = new PDFLoader(buffer);
+    // Use the Blob directly with PDFLoader
+    const loader = new PDFLoader(file);
     const docs = await loader.load();
 
     // Extract text from all pages
@@ -28,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     // Initialize OpenAI model
     const model = new ChatOpenAI({
-      modelName: 'gpt-4',
+      modelName: 'gpt-4o-mini',
       temperature: 0,
     });
 
@@ -41,37 +38,39 @@ export async function POST(request: NextRequest) {
       Resume text:
       {text}
       
-      Response should be a valid JSON object with the following structure:
-      {
-        "basics": {
-          "name": "",
-          "email": "",
-          "phone": "",
-          "location": {
-            "city": "",
-            "country": ""
-          },
-          "summary": ""
-        },
-        "work": [
-          {
-            "company": "",
-            "position": "",
-            "startDate": "",
-            "endDate": "",
-            "summary": ""
-          }
-        ],
-        "education": [
-          {
-            "institution": "",
-            "area": "",
-            "studyType": "",
-            "startDate": "",
-            "endDate": ""
-          }
-        ]
-      }
+      Required fields to extract:
+      - basics.name: Full name of the person
+      - basics.email: Email address
+      - basics.phone: Phone number
+      - basics.location.city: City
+      - basics.location.country: Country
+      - basics.summary: Professional summary
+      
+      - work: Array of work experiences, each with:
+        - name: Company name
+        - position: Job title
+        - startDate: Start date
+        - endDate: End date or "Present"
+        - summary: Job description
+        - highlights: Array of key achievements
+      
+      - education: Array of educational experiences, each with:
+        - institution: School/University name
+        - area: Field of study
+        - studyType: Degree type
+        - startDate: Start date
+        - endDate: End date or "Present"
+        - score: GPA or grade (if available)
+        - courses: Array of relevant courses
+      
+      Optional fields to extract if present:
+      - skills: Array of skills with name and keywords
+      - languages: Array of languages with language and fluency
+      - projects: Array of projects with name, description, and highlights
+      - certificates: Array of certificates with name, date, and issuer
+      - awards: Array of awards with title, date, and awarder
+
+      Return only the JSON object without any additional text and without backticks.
     `);
 
     // Generate prompt
@@ -79,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     // Get response from OpenAI
     const response = await model.invoke(prompt);
-    const parsedResume = JSON.parse(response.content);
+    const parsedResume = JSON.parse(response.content.toString());
 
     return NextResponse.json(parsedResume);
   } catch (error) {

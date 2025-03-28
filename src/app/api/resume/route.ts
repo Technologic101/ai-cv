@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jsonresumeSchema } from 'jsonresume-schema';
+import jsonresumeSchema from '@jsonresume/schema';
 
 // In a real application, you would use a database
 // For now, we'll use an in-memory store
@@ -10,7 +10,12 @@ export async function POST(request: NextRequest) {
     const resume = await request.json();
 
     // Validate against JSON Resume schema
-    const validationResult = jsonresumeSchema.validate(resume);
+    const validationResult = await new Promise<{ errors: any[] | null; valid: boolean }>((resolve) => {
+      jsonresumeSchema.validate(resume, (errors, valid) => {
+        resolve({ errors, valid });
+      });
+    });
+
     if (!validationResult.valid) {
       return NextResponse.json(
         { error: 'Invalid resume format', details: validationResult.errors },
