@@ -1,0 +1,171 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Resume {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Basics
+  name     String
+  label    String?  // Professional title
+  email    String
+  phone    String?
+  image    String?  // URL to profile picture
+  url      String?  // Personal website
+  summary  String?
+
+  // Location
+  location Location?
+
+  // Profiles (social media)
+  profiles Profile[]
+
+  // Work Experience
+  workExperiences WorkExperience[]
+
+  // Education
+  educations Education[]
+
+  // Skills
+  skills Skill[]
+
+  // Languages
+  languages Language[]
+
+  // Projects
+  projects Project[]
+
+  // Certificates
+  certificates Certificate[]
+
+  // Awards
+  awards Award[]
+}
+
+model Location {
+  id          String   @id @default(uuid())
+  resumeId    String   @unique
+  resume      Resume   @relation(fields: [resumeId], references: [id])
+  address     String?
+  postalCode  String?
+  city        String?
+  country     String?
+  countryCode String?
+  region      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  resumeId  String
+  resume    Resume   @relation(fields: [resumeId], references: [id])
+  network   String   // e.g., "LinkedIn", "GitHub"
+  username  String?
+  url       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WorkExperience {
+  id          String   @id @default(uuid())
+  resumeId    String
+  resume      Resume   @relation(fields: [resumeId], references: [id])
+  company     String
+  position    String
+  url         String?  // Company website
+  startDate   DateTime
+  endDate     DateTime?
+  summary     String?
+  highlights  String   // JSON string of highlights array
+  location    String?  // Company location
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Education {
+  id          String   @id @default(uuid())
+  resumeId    String
+  resume      Resume   @relation(fields: [resumeId], references: [id])
+  institution String
+  url         String?  // Institution website
+  area        String
+  studyType   String
+  startDate   DateTime
+  endDate     DateTime?
+  score       String?
+  courses     String   // JSON string of courses array
+  location    String?  // Institution location
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Skill {
+  id        String   @id @default(uuid())
+  resumeId  String
+  resume    Resume   @relation(fields: [resumeId], references: [id])
+  name      String
+  level     String?  // Proficiency level
+  keywords  String   // JSON string of keywords array
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Language {
+  id        String   @id @default(uuid())
+  resumeId  String
+  resume    Resume   @relation(fields: [resumeId], references: [id])
+  language  String
+  fluency   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  resumeId    String
+  resume      Resume   @relation(fields: [resumeId], references: [id])
+  name        String
+  description String?
+  url         String?  // Project URL
+  highlights  String   // JSON string of highlights array
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Certificate {
+  id        String   @id @default(uuid())
+  resumeId  String
+  resume    Resume   @relation(fields: [resumeId], references: [id])
+  name      String
+  date      DateTime
+  issuer    String
+  url       String?  // Certificate URL
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Award {
+  id        String   @id @default(uuid())
+  resumeId  String
+  resume    Resume   @relation(fields: [resumeId], references: [id])
+  title     String
+  date      DateTime
+  awarder   String
+  url       String?  // Award URL
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
